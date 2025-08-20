@@ -24,4 +24,11 @@ class TimeSlot extends Model
     {
         return $this->hasMany(Booking::class);
     }
+
+    public function tables()
+    {
+        return $this->belongsToMany(Table::class, 'table_time_slots')
+                    ->withPivot('is_disabled')
+                    ->withTimestamps();
+    }
 }

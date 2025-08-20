@@ -12,6 +12,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Filament\Forms\Components\CheckboxList;
 
 class TableResource extends Resource
 {
@@ -61,6 +62,13 @@ class TableResource extends Resource
                     ->default(['1','2','3','4','5','6','0']) // Tutti i giorni di default
                     ->columns(3)
                     ->required(),
+                    
+                Forms\Components\CheckboxList::make('timeSlots')
+                    ->label('Orari Disponibili')
+                    ->relationship('timeSlots', 'time')
+                    ->getOptionLabelFromRecordUsing(fn ($record) => $record->time->format('H:i'))
+                    ->columns(3)
+                    ->bulkToggleable(),
             ]);
     }
 

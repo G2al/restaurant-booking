@@ -31,4 +31,11 @@ class Table extends Model
     {
         return in_array((string)$dayOfWeek, $this->opening_days);
     }
+
+    public function timeSlots()
+    {
+        return $this->belongsToMany(TimeSlot::class, 'table_time_slots')
+                    ->withPivot('is_disabled')
+                    ->withTimestamps();
+    }
 }

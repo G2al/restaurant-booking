@@ -80,10 +80,17 @@ class BookingController extends Controller
         }
         
         // Trova tutti gli slot attivi
+       // Trova gli slot attivi NON disabilitati per i tavoli con capacità esatta
         $allSlots = TimeSlot::where('is_active', true)
+            ->whereHas('tables', function ($query) use ($guests, $dayOfWeek) {
+                $query->where('is_active', true)
+                    ->where('capacity', $guests)
+                    ->whereRaw('JSON_CONTAINS(opening_days, ?)', ['"'.$dayOfWeek.'"'])
+                    ->where('table_time_slots.is_disabled', false);
+            })
             ->orderBy('time')
             ->get();
-        
+
         // NUOVO: Controllo orari passati se è oggi
         $availableSlots = collect();
         $now = Carbon::now();
@@ -140,9 +147,13 @@ class BookingController extends Controller
         $timeSlotId = $request->time_slot_id;
         $guests = $request->guests;
         
-        // Trova il primo tavolo disponibile con capacità ESATTA (double-check)
+        // Trova il primo tavolo disponibile con capacità ESATTA e orario NON disabilitato
         $availableTable = Table::where('is_active', true)
-            ->where('capacity', $guests)  // Capacità esatta, non >=
+            ->where('capacity', $guests)
+            ->whereHas('timeSlots', function ($query) use ($timeSlotId) {
+                $query->where('time_slot_id', $timeSlotId)
+                    ->where('table_time_slots.is_disabled', false);
+            })
             ->whereNotIn('id', Booking::where('date', $date)
                 ->where('time_slot_id', $timeSlotId)
                 ->where('status', 'confirmed')
@@ -201,8 +212,12 @@ class BookingController extends Controller
             });
         
         foreach ($activeTables as $table) {
-            // Controlla se questo tavolo ha almeno uno slot libero
+            // Controlla se questo tavolo ha almeno uno slot libero E non disabilitato
             $hasAvailableSlot = TimeSlot::where('is_active', true)
+                ->whereHas('tables', function ($query) use ($table) {
+                    $query->where('table_id', $table->id)
+                        ->where('table_time_slots.is_disabled', false);
+                })
                 ->whereNotExists(function ($query) use ($date, $table) {
                     $query->select(DB::raw(1))
                         ->from('bookings')
