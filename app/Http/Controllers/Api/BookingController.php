@@ -11,6 +11,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use App\Notifications\BookingConfirmation;
 use Illuminate\Support\Facades\Notification;
+use App\Services\TelegramService;
 
 class BookingController extends Controller
 {
@@ -177,6 +178,17 @@ class BookingController extends Controller
             'special_requests' => $request->special_requests,
             'status' => 'confirmed'
         ]);
+
+        // Invia notifica Telegram
+        $message = "🍽️ <b>NUOVA PRENOTAZIONE!</b>\n\n" .
+                "👤 <b>Cliente:</b> {$booking->customer_name}\n" .
+                "📞 <b>Telefono:</b> {$booking->customer_phone}\n" .
+                "🪑 <b>Tavolo:</b> {$availableTable->name}\n" .
+                "📅 <b>Data:</b> {$booking->date}\n" .
+                "⏰ <b>Ora:</b> {$booking->timeSlot->time}\n" .
+                "👥 <b>Ospiti:</b> {$booking->guests_count}";
+
+        TelegramService::sendNotification($message);
         
         // Invia email di conferma
         Notification::route('mail', $request->customer_email)
