@@ -58,46 +58,49 @@ class BookingResource extends Resource
                     }),
                     
                 Forms\Components\Select::make('time_slot_id')
-                    ->label('Orario')
-                    ->required()
-                    ->live()
-                    ->options(function (Forms\Get $get) {
-                        $tableId = $get('table_id');
-                        $date = $get('date');
-                        
-                        if (!$tableId || !$date) {
-                            return [];
-                        }
-                        
-                        // Ottieni tutti gli slot
-                        $allSlots = \App\Models\TimeSlot::where('is_active', true)
-                            ->orderBy('time')
-                            ->get();
-                        
-                        // Ottieni gli slot già occupati per questo tavolo in questa data
-                        $occupiedSlots = \App\Models\Booking::where('table_id', $tableId)
-                            ->where('date', $date)
-                            ->where('status', 'confirmed')
-                            ->pluck('time_slot_id')
-                            ->toArray();
-                        
-                        // Filtra solo gli slot liberi
-                        $availableSlots = $allSlots->whereNotIn('id', $occupiedSlots);
-                        
-                        return $availableSlots->pluck('time', 'id')->toArray();
-                    })
-                    ->placeholder('Seleziona tavolo e data prima')
-                    ->hint(function (Forms\Get $get) {
-                        $tableId = $get('table_id');
-                        $date = $get('date');
-                        
-                        if (!$tableId || !$date) {
-                            return 'Seleziona tavolo e data per vedere gli orari disponibili';
-                        }
-                        
-                        return 'Solo orari liberi per questo tavolo';
-                    }),
-                    
+    ->label('Orario')
+    ->required()
+    ->live()
+    ->options(function (Forms\Get $get, $record) {
+        $tableId = $get('table_id');
+        $date = $get('date');
+        
+        if (!$tableId || !$date) {
+            return [];
+        }
+        
+        // Ottieni tutti gli slot
+        $allSlots = \App\Models\TimeSlot::where('is_active', true)
+            ->orderBy('time')
+            ->get();
+        
+        // Ottieni gli slot già occupati per questo tavolo in questa data
+        // ESCLUDI la prenotazione corrente se stiamo modificando
+        $occupiedSlots = \App\Models\Booking::where('table_id', $tableId)
+            ->where('date', $date)
+            ->where('status', 'confirmed')
+            ->when($record, function ($query) use ($record) {
+                $query->where('id', '!=', $record->id);
+            })
+            ->pluck('time_slot_id')
+            ->toArray();
+        
+        // Filtra solo gli slot liberi
+        $availableSlots = $allSlots->whereNotIn('id', $occupiedSlots);
+        
+        return $availableSlots->pluck('time', 'id')->toArray();
+    })
+    ->placeholder('Seleziona tavolo e data prima')
+    ->hint(function (Forms\Get $get) {
+        $tableId = $get('table_id');
+        $date = $get('date');
+        
+        if (!$tableId || !$date) {
+            return 'Seleziona tavolo e data per vedere gli orari disponibili';
+        }
+        
+        return 'Solo orari liberi per questo tavolo';
+    }),
                 Forms\Components\TextInput::make('guests_count')
                     ->label('Numero Persone')
                     ->required()
