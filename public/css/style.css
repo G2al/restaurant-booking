@@ -69,11 +69,15 @@ body {
     font-family: "karla", sans-serif !important;
     font-size: 13px;
     background-color: var(--background);
+    background-image: url('../images/sold.jpg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
     margin: 0 auto;
     position: relative;
     overflow-x: hidden;
     padding-bottom: 70px;
-    /* Space for bottom nav */
     color: var(--text-primary);
 }
 
@@ -1923,6 +1927,24 @@ a {
 
 .custom-dropdown-text.placeholder {
     font-style: italic; /* Corsivo per distinguere */
+}
+
+.content-area {
+    position: relative;
+    min-height: 100vh;
+}
+.search-card {
+    background-color: rgba(255, 255, 255, 0.95);
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    max-width: 700px;  /* Aumentato da 500px */
+    width: 90%;        /* Aggiunto per responsive */
+    margin: 0 auto;
+    padding: 40px;     /* Aumentato da 30px */
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
 }
 /* Responsive */
 @media (max-width: 768px) {
