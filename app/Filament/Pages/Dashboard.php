@@ -14,6 +14,7 @@ class Dashboard extends BaseDashboard
     {
         return [
             \App\Filament\Widgets\StatsOverviewWidget::class,
+            \App\Livewire\BookingNotifications::class,
         ];
     }
     
