@@ -18,10 +18,39 @@
     <!-- Main Content Area -->
     <div class="content-area">
         <!-- Booking Section -->
-        <div class="search-card">
-            <h6 class="text-primary-color mb-3 fw-semibold">
-                <i class="bi bi-calendar-check me-2"></i>Prenota il tuo Tavolo
-            </h6>
+<div class="search-card">
+    <!-- Header Section con Menu e Social -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <!-- Menu Button -->
+        <div class="flex-grow-1 me-2">
+            <a href="https://drive.google.com/file/d/1KyPcbz5JczcsdXdFLKoo5gbrFavv-o_6/view" 
+               target="_blank" 
+               class="btn-app p-2 fw-bold btn w-100">
+                <i class="bi bi-file-text me-2"></i>Menu
+            </a>
+        </div>
+        
+        <!-- Social Icons -->
+        <div class="d-flex gap-2">
+            <a href="https://www.instagram.com/paninoteca_soldout/" 
+               target="_blank" 
+               class="btn p-2"
+               style="background: linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%); color: white; border: none;">
+                <i class="bi bi-instagram"></i>
+            </a>
+            <a href="https://www.tiktok.com/@_soldoutexperience" 
+               target="_blank" 
+               class="btn p-2"
+               style="background-color: #000000; color: white; border: none;">
+                <i class="bi bi-tiktok"></i>
+            </a>
+        </div>
+    </div>
+    
+    <h6 class="text-primary-color mb-3 fw-semibold">
+        <i class="bi bi-calendar-check me-2"></i>Prenota il tuo Tavolo
+    </h6>
+    <!-- resto del form rimane uguale -->
             <form id="bookingForm">
                 <!-- Step 1: Data -->
                 <div class="mb-3">
