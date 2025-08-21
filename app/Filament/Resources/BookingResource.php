@@ -135,7 +135,26 @@ class BookingResource extends Resource
                 Forms\Components\TextInput::make('customer_phone')
                     ->label('Telefono Cliente')
                     ->tel()
-                    ->required(),
+                    ->required()
+                    ->suffixAction(
+                        Forms\Components\Actions\Action::make('whatsapp')
+                            ->icon('heroicon-o-chat-bubble-left-ellipsis')
+                            ->color('success')
+                            ->url(function ($get) {
+                                $phone = $get('customer_phone');
+                                $name = $get('customer_name');
+                                if ($phone && $name) {
+                                    $phoneNumber = preg_replace('/[^0-9]/', '', $phone);
+                                    if (substr($phoneNumber, 0, 2) !== '39') {
+                                        $phoneNumber = '39' . $phoneNumber;
+                                    }
+                                    $message = urlencode("Ciao {$name}, confermiamo la tua prenotazione. Ti aspettiamo!");
+                                    return "https://wa.me/{$phoneNumber}?text={$message}";
+                                }
+                                return null;
+                            })
+                            ->openUrlInNewTab()
+                    ),
 
                 Forms\Components\Textarea::make('special_requests')
                     ->label('Richieste Speciali')
