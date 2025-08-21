@@ -237,7 +237,7 @@ class BookingResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            \App\Livewire\BookingNotifications::class,
         ];
     }
 
