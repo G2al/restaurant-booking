@@ -19,6 +19,9 @@
     <div class="content-area">
         <!-- Booking Section -->
 <div class="search-card">
+        <div class="text-center mb-4">
+        <h1 class="sold-out-logo mb-0">Sold Out</h1>
+    </div>
     <!-- Header Section con Menu e Social -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <!-- Menu Button -->
