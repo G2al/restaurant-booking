@@ -34,18 +34,25 @@
         </div>
         
         <!-- Social Icons -->
+<!-- Social Icons -->
         <div class="d-flex gap-2">
             <a href="https://www.instagram.com/paninoteca_soldout/" 
-               target="_blank" 
-               class="btn p-2"
-               style="background: linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%); color: white; border: none;">
+            target="_blank" 
+            class="btn p-2"
+            style="background: linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%); color: white; border: none;">
                 <i class="bi bi-instagram"></i>
             </a>
             <a href="https://www.tiktok.com/@_soldoutexperience" 
-               target="_blank" 
-               class="btn p-2"
-               style="background-color: #000000; color: white; border: none;">
+            target="_blank" 
+            class="btn p-2"
+            style="background-color: #000000; color: white; border: none;">
                 <i class="bi bi-tiktok"></i>
+            </a>
+            <a href="https://wa.me/393319036288?text=Ciao!%20Vorrei%20informazioni%20sulla%20paninoteca" 
+            target="_blank" 
+            class="btn p-2"
+            style="background-color: #25D366; color: white; border: none;">
+                <i class="bi bi-whatsapp"></i>
             </a>
         </div>
     </div>
