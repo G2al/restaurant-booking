@@ -17,7 +17,7 @@ class BookingController extends Controller
 {
     public function availableDates()
     {
-        // Generiamo le prossime 30 giorni
+        // Generiamo i prossimi 30 giorni
         $dates = collect();
         
         for ($i = 0; $i < 30; $i++) {
@@ -64,73 +64,68 @@ class BookingController extends Controller
             return response()->json(['error' => 'Data e numero ospiti richiesti'], 400);
         }
         
-        // Ottieni il giorno della settimana
         $dayOfWeek = Carbon::parse($date)->dayOfWeek;
-        
-        // Trova tavoli con capacità ESATTA E aperti in questo giorno
-        $exactTables = Table::where('is_active', true)
-            ->where('capacity', $guests)
+        $selectedDate = Carbon::parse($date);
+        $isToday = $selectedDate->isToday();
+
+        // 🔹 Trova tavoli attivi e aperti quel giorno
+        $candidateTables = Table::where('is_active', true)
             ->get()
-            ->filter(function ($table) use ($dayOfWeek) {
-                return $table->isOpenOnDay($dayOfWeek);
-            })
-            ->pluck('id');
-            
-        if ($exactTables->isEmpty()) {
+            ->filter(function ($table) use ($dayOfWeek, $guests) {
+                if (!$table->isOpenOnDay($dayOfWeek)) {
+                    return false;
+                }
+
+                // Tavoli modulari (capacities)
+                return !empty($table->capacities) && in_array($guests, $table->capacities);
+            });
+
+        if ($candidateTables->isEmpty()) {
             return response()->json([]);
         }
-        
-        // Trova tutti gli slot attivi
-       // Trova gli slot attivi NON disabilitati per i tavoli con capacità esatta
+
+        // 🔹 Trova tutti gli slot attivi compatibili
         $allSlots = TimeSlot::where('is_active', true)
-            ->whereHas('tables', function ($query) use ($guests, $dayOfWeek) {
-                $query->where('is_active', true)
-                    ->where('capacity', $guests)
-                    ->whereRaw('JSON_CONTAINS(opening_days, ?)', ['"'.$dayOfWeek.'"'])
-                    ->where('table_time_slots.is_disabled', false);
+            ->whereHas('tables', function ($query) use ($candidateTables, $dayOfWeek) {
+                $query->whereIn('table_id', $candidateTables->pluck('id'))
+                    ->where('table_time_slots.is_disabled', false)
+                    ->whereRaw('JSON_CONTAINS(opening_days, ?)', ['"'.$dayOfWeek.'"']);
             })
             ->orderBy('time')
             ->get();
 
-        // NUOVO: Controllo orari passati se è oggi
         $availableSlots = collect();
-        $now = Carbon::now();
-        $selectedDate = Carbon::parse($date);
-        $isToday = $selectedDate->isToday();
-        
+
         foreach ($allSlots as $slot) {
-            // SE È OGGI, salta orari passati
+            // 🔹 Se è oggi, salta orari già passati
             if ($isToday) {
                 $slotDateTime = Carbon::today()->setTimeFromTimeString($slot->time);
                 if ($slotDateTime->isPast()) {
-                    continue; // Salta questo slot
+                    continue;
                 }
             }
-            
-            // Resto della logica rimane uguale
-            $availableExactTable = Table::where('is_active', true)
-                ->where('capacity', $guests)
-                ->get()
-                ->filter(function ($table) use ($dayOfWeek) {
-                    return $table->isOpenOnDay($dayOfWeek);
-                })
-                ->whereNotIn('id', Booking::where('date', $date)
+
+            // 🔹 Verifica che ci sia almeno un tavolo libero per questo slot
+            $availableTable = $candidateTables->filter(function ($table) use ($date, $slot) {
+                return !Booking::where('date', $date)
                     ->where('time_slot_id', $slot->id)
                     ->where('status', 'confirmed')
-                    ->pluck('table_id'))
-                ->isNotEmpty();
-                
-            if ($availableExactTable) {
+                    ->where('table_id', $table->id)
+                    ->exists();
+            })->isNotEmpty();
+
+            if ($availableTable) {
                 $availableSlots->push([
                     'id' => $slot->id,
                     'time' => $slot->time->format('H:i'),
-                    'formatted' => $slot->time->format('H:i')
+                    'formatted' => $slot->time->format('H:i'),
                 ]);
             }
         }
-        
+
         return response()->json($availableSlots);
     }
+
 
     public function store(Request $request)
     {
@@ -147,26 +142,48 @@ class BookingController extends Controller
         $date = $request->date;
         $timeSlotId = $request->time_slot_id;
         $guests = $request->guests;
-        
-        // Trova il primo tavolo disponibile con capacità ESATTA e orario NON disabilitato
-        $availableTable = Table::where('is_active', true)
-            ->where('capacity', $guests)
-            ->whereHas('timeSlots', function ($query) use ($timeSlotId) {
-                $query->where('time_slot_id', $timeSlotId)
-                    ->where('table_time_slots.is_disabled', false);
-            })
-            ->whereNotIn('id', Booking::where('date', $date)
+        $dayOfWeek = Carbon::parse($date)->dayOfWeek;
+
+        // 🔹 Trova tavoli candidati aperti e compatibili con numero ospiti
+        $candidateTables = Table::where('is_active', true)
+            ->get()
+            ->filter(function ($table) use ($dayOfWeek, $guests) {
+                if (!$table->isOpenOnDay($dayOfWeek)) {
+                    return false;
+                }
+
+                return !empty($table->capacities) && in_array($guests, $table->capacities);
+            });
+
+        if ($candidateTables->isEmpty()) {
+            return response()->json(['error' => 'Nessun tavolo disponibile per questo numero di ospiti.'], 400);
+        }
+
+        // 🔹 Cerca un tavolo libero per quello slot
+        $availableTable = $candidateTables->filter(function ($table) use ($timeSlotId, $date) {
+            $hasSlotEnabled = $table->timeSlots()
+                ->where('time_slot_id', $timeSlotId)
+                ->where('table_time_slots.is_disabled', false)
+                ->exists();
+
+            if (!$hasSlotEnabled) {
+                return false;
+            }
+
+            $alreadyBooked = Booking::where('date', $date)
                 ->where('time_slot_id', $timeSlotId)
                 ->where('status', 'confirmed')
-                ->pluck('table_id'))
-            ->orderBy('capacity')
-            ->first();
+                ->where('table_id', $table->id)
+                ->exists();
+
+            return !$alreadyBooked;
+        })->first();
 
         if (!$availableTable) {
-            return response()->json(['error' => 'Spiacenti, questo orario è stato appena prenotato da qualcun altro. Scegli un altro orario.'], 400);
+            return response()->json(['error' => 'Spiacenti, questo orario è stato appena prenotato da qualcun altro.'], 400);
         }
-        
-        // Crea la prenotazione
+
+        // 🔹 Crea la prenotazione
         $booking = Booking::create([
             'table_id' => $availableTable->id,
             'date' => $date,
@@ -179,7 +196,7 @@ class BookingController extends Controller
             'status' => 'confirmed'
         ]);
 
-        // Invia notifica Telegram
+        // 🔹 Invia notifica Telegram
         $dataFormatted = Carbon::parse($booking->date)->locale('it')->isoFormat('DD/MM - dddd');
         $oraFormatted = Carbon::parse($booking->timeSlot->time)->format('H:i');
 
@@ -189,11 +206,11 @@ class BookingController extends Controller
                 "🪑 <b>Tavolo:</b> {$availableTable->name}\n" .
                 "📅 <b>Data:</b> {$dataFormatted}\n" .
                 "⏰ <b>Ora:</b> {$oraFormatted}\n" .
-           "👥 <b>Ospiti:</b> {$booking->guests_count}";
+                "👥 <b>Ospiti:</b> {$booking->guests_count}";
 
         TelegramService::sendNotification($message);
-        
-        // Invia email di conferma
+
+        // 🔹 Invia email di conferma
         Notification::route('mail', $request->customer_email)
             ->notify(new BookingConfirmation($booking));
 
@@ -204,6 +221,7 @@ class BookingController extends Controller
             'message' => 'Prenotazione confermata!'
         ]);
     }
+
 
     public function availableCapacities(Request $request)
     {
@@ -216,10 +234,9 @@ class BookingController extends Controller
         // Ottieni il giorno della settimana (0=domenica, 1=lunedì, etc.)
         $dayOfWeek = Carbon::parse($date)->dayOfWeek;
         
-        // Trova le capacità esatte dei tavoli aperti in questo giorno che hanno almeno uno slot libero
         $availableCapacities = collect();
         
-        // Ottieni solo i tavoli attivi E aperti in questo giorno
+        // Ottieni solo i tavoli attivi e aperti in questo giorno
         $activeTables = Table::where('is_active', true)
             ->get()
             ->filter(function ($table) use ($dayOfWeek) {
@@ -227,7 +244,7 @@ class BookingController extends Controller
             });
         
         foreach ($activeTables as $table) {
-            // Controlla se questo tavolo ha almeno uno slot libero E non disabilitato
+            // Controlla se questo tavolo ha almeno uno slot libero NON disabilitato
             $hasAvailableSlot = TimeSlot::where('is_active', true)
                 ->whereHas('tables', function ($query) use ($table) {
                     $query->where('table_id', $table->id)
@@ -243,8 +260,10 @@ class BookingController extends Controller
                 })
                 ->exists();
                 
-            if ($hasAvailableSlot) {
-                $availableCapacities->push($table->capacity);
+            if ($hasAvailableSlot && !empty($table->capacities) && is_array($table->capacities)) {
+                foreach ($table->capacities as $cap) {
+                    $availableCapacities->push((int) $cap);
+                }
             }
         }
         

@@ -10,8 +10,6 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Forms\Components\CheckboxList;
 
 class TableResource extends Resource
@@ -36,18 +34,20 @@ class TableResource extends Resource
                     ->label('Nome Tavolo')
                     ->required()
                     ->maxLength(255),
-                    
-                Forms\Components\TextInput::make('capacity')
-                    ->label('Posti Disponibili')
-                    ->required()
-                    ->numeric()
-                    ->minValue(1)
-                    ->maxValue(20),
-                    
+
+                Forms\Components\TagsInput::make('capacities')
+                    ->label('Capacità multiple (solo numeri)')
+                    ->placeholder('Es. 2,3,4')
+                    ->required(false)
+                    ->rules(['array']) // l’input deve essere array
+                    ->nestedRecursiveRules(['integer', 'min:1', 'max:20'])
+                    ->suggestions([2,3,4,5,6,7,8]) // opzionale: suggerimenti rapidi
+                    ->reorderable(),
+
                 Forms\Components\Toggle::make('is_active')
                     ->label('Attivo')
                     ->default(true),
-                
+
                 Forms\Components\CheckboxList::make('opening_days')
                     ->label('Giorni di Apertura')
                     ->options([
@@ -59,10 +59,10 @@ class TableResource extends Resource
                         '6' => 'Sabato',
                         '0' => 'Domenica',
                     ])
-                    ->default(['1','2','3','4','5','6','0']) // Tutti i giorni di default
+                    ->default(['1','2','3','4','5','6','0'])
                     ->columns(3)
                     ->required(),
-                    
+
                 Forms\Components\CheckboxList::make('timeSlots')
                     ->label('Orari Disponibili')
                     ->relationship('timeSlots', 'time')
@@ -79,11 +79,18 @@ class TableResource extends Resource
                 Tables\Columns\TextColumn::make('name')
                     ->label('Nome Tavolo')
                     ->searchable(),
-                    
-                Tables\Columns\TextColumn::make('capacity')
+
+                // 🔹 Mostra capacities se ci sono, altrimenti capacity
+                Tables\Columns\TextColumn::make('capacities')
                     ->label('Posti')
+                    ->formatStateUsing(fn ($state, $record) =>
+                        is_array($state)
+                            ? implode(', ', $state)       // Se è array → "3, 5, 6"
+                            : ($state ?? $record->capacity) // Se è stringa o null → mostra lo stato o la capacity
+                    )
                     ->sortable(),
-                    
+
+
                 Tables\Columns\ToggleColumn::make('is_active')
                     ->label('Attivo/Disattivo'),
 
@@ -93,7 +100,7 @@ class TableResource extends Resource
                     ->sortable()
                     ->badge()
                     ->color('success'),
-                    
+
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Creato il')
                     ->dateTime()
