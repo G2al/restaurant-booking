@@ -65,7 +65,11 @@ class TableResource extends Resource
 
                 Forms\Components\CheckboxList::make('timeSlots')
                     ->label('Orari Disponibili')
-                    ->relationship('timeSlots', 'time')
+                        ->relationship(
+        name: 'timeSlots',
+        titleAttribute: 'time',
+        modifyQueryUsing: fn ($query) => $query->orderBy('time')
+    )
                     ->getOptionLabelFromRecordUsing(fn ($record) => $record->time->format('H:i'))
                     ->columns(3)
                     ->bulkToggleable(),
