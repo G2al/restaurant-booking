@@ -18,49 +18,54 @@
     <!-- Main Content Area -->
     <div class="content-area">
         <!-- Booking Section -->
-<div class="search-card">
-        <div class="text-center mb-4">
-        <h1 class="sold-out-logo mb-0">Sold Out</h1>
-    </div>
-    <!-- Header Section con Menu e Social -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <!-- Menu Button -->
-        <div class="flex-grow-1 me-2">
-            <a href="https://drive.google.com/file/d/1KyPcbz5JczcsdXdFLKoo5gbrFavv-o_6/view" 
-               target="_blank" 
-               class="btn-app p-2 fw-bold btn w-100">
-                <i class="bi bi-file-text me-2"></i>Menu
-            </a>
-        </div>
-        
-        <!-- Social Icons -->
-<!-- Social Icons -->
-        <div class="d-flex gap-2">
-            <a href="https://www.instagram.com/paninoteca_soldout/" 
-            target="_blank" 
-            class="btn p-2"
-            style="background: linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%); color: white; border: none;">
-                <i class="bi bi-instagram"></i>
-            </a>
-            <a href="https://www.tiktok.com/@_soldoutexperience" 
-            target="_blank" 
-            class="btn p-2"
-            style="background-color: #000000; color: white; border: none;">
-                <i class="bi bi-tiktok"></i>
-            </a>
-            <a href="https://wa.me/393319036288?text=Ciao!%20Vorrei%20informazioni%20sulla%20paninoteca" 
-            target="_blank" 
-            class="btn p-2"
-            style="background-color: #25D366; color: white; border: none;">
-                <i class="bi bi-whatsapp"></i>
-            </a>
-        </div>
-    </div>
-    
-    <h6 class="text-primary-color mb-3 fw-semibold">
-        <i class="bi bi-calendar-check me-2"></i>Prenota il tuo Tavolo
-    </h6>
-    <!-- resto del form rimane uguale -->
+        <div class="search-card">
+            <div class="text-center mb-4">
+                <h1 class="sold-out-logo mb-0">Booking App</h1>
+            </div>
+
+            <!-- Header Section con Menu e Social -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <!-- Menu Button -->
+                <div class="flex-grow-1 me-2">
+                    <a href="https://drive.google.com/file/d/1KyPcbz5JczcsdXdFLKoo5gbrFavv-o_6/view"
+                       target="_blank"
+                       class="btn-app p-2 fw-bold btn w-100">
+                        <i class="bi bi-file-text me-2"></i>Menu
+                    </a>
+                </div>
+
+                <!-- Social Icons -->
+                <div class="d-flex gap-2">
+                    <a href="https://www.instagram.com/paninoteca_soldout/"
+                       target="_blank"
+                       class="btn p-2"
+                       style="background: linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%); color: white; border: none;">
+                        <i class="bi bi-instagram"></i>
+                    </a>
+                    <a href="https://www.tiktok.com/@_soldoutexperience"
+                       target="_blank"
+                       class="btn p-2"
+                       style="background-color: #000000; color: white; border: none;">
+                        <i class="bi bi-tiktok"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Nota sotto le icone -->
+            <div class="mt-2 text-center">
+                <div class="fw-semibold text-danger small border rounded p-2 d-inline-block">
+                    📞 Per tavoli da <strong>9 persone in poi</strong> chiamare
+                    <a href="tel:08119347014" class="text-decoration-none text-dark fw-bold">
+                        081 1934 7014
+                    </a>
+                </div>
+            </div>
+
+            <h6 class="text-primary-color mb-3 fw-semibold mt-4">
+                <i class="bi bi-calendar-check me-2"></i>Prenota il tuo Tavolo
+            </h6>
+
+            <!-- Booking Form -->
             <form id="bookingForm">
                 <!-- Step 1: Data -->
                 <div class="mb-3">
@@ -84,14 +89,12 @@
                             <i class="bi bi-chevron-down custom-dropdown-arrow"></i>
                         </div>
                         <div class="custom-dropdown-menu" id="guestsDropdownMenu">
-                            <!-- Contenuto placeholder iniziale -->
                             <div class="custom-dropdown-item disabled-item">
                                 <i class="bi bi-calendar me-2"></i>Seleziona prima una data
                             </div>
                         </div>
                     </div>
                     
-                    <!-- Campo hidden per mantenere compatibilità con il JavaScript esistente -->
                     <input type="hidden" id="guestsCount" required>
                 </div>
 
@@ -101,7 +104,6 @@
                         <i class="bi bi-clock me-1 text-accent-color"></i>Orario
                     </label>
                     
-                    <!-- Dropdown personalizzato -->
                     <div class="custom-dropdown" id="timeDropdown">
                         <div class="custom-dropdown-trigger" id="timeDropdownTrigger">
                             <span class="custom-dropdown-text placeholder" id="timeDropdownText">Seleziona prima data e persone</span>
@@ -109,14 +111,12 @@
                         </div>
                         
                         <div class="custom-dropdown-menu" id="timeDropdownMenu">
-                            <!-- Contenuto placeholder iniziale -->
                             <div class="custom-dropdown-item disabled-item">
                                 <i class="bi bi-clock me-2"></i>Seleziona prima persone
                             </div>
                         </div>
                     </div>
                     
-                    <!-- Campo hidden per mantenere compatibilità -->
                     <input type="hidden" id="bookingTime" required>
                 </div>
 
